@@ -1,0 +1,212 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+typedef struct Stock {
+    char name[20];
+    float price;
+    struct Stock *next;
+} Stock;
+
+// Create new stock
+Stock* createStock(const char *name, float price) {
+    Stock *newStock = (Stock*)malloc(sizeof(Stock));
+    strncpy(newStock->name, name, sizeof(newStock->name) - 1);
+    newStock->name[sizeof(newStock->name) - 1] = '\0';
+    newStock->price = price;
+    newStock->next = NULL;
+    return newStock;
+}
+
+// Add stock to list
+void addStock(Stock **head, const char *name, float price) {
+    Stock *newStock = createStock(name, price);
+    newStock->next = *head;
+    *head = newStock;
+}
+
+// Update stock price
+void updateStock(Stock *head, const char *name, float newPrice) {
+    while (head != NULL) {
+        if (strcmp(head->name, name) == 0) {
+            head->price = newPrice;
+            printf("Updated %s to $%.2f\n", name, newPrice);
+            return;
+        }
+        head = head->next;
+    }
+    printf("Stock not found.\n");
+}
+
+// Delete stock by name
+void deleteStock(Stock **head, const char *name) {
+    Stock *temp = *head, *prev = NULL;
+    while (temp != NULL && strcmp(temp->name, name) != 0) {
+        prev = temp;
+        temp = temp->next;
+    }
+    if (temp == NULL) {
+        printf("Stock not found.\n");
+        return;
+    }
+    if (prev == NULL)
+        *head = temp->next;
+    else
+        prev->next = temp->next;
+    free(temp);
+    printf("Deleted stock: %s\n", name);
+}
+
+// Search for stock
+void searchStock(Stock *head, const char *name) {
+    while (head != NULL) {
+        if (strcmp(head->name, name) == 0) {
+            printf("Stock Found: %s at $%.2f\n", head->name, head->price);
+            return;
+        }
+        head = head->next;
+    }
+    printf("Stock not found.\n");
+}
+
+// Count stocks
+int countStocks(Stock *head) {
+    int count = 0;
+    while (head != NULL) {
+        count++;
+        head = head->next;
+    }
+    return count;
+}
+
+// Sort stocks by name
+void sortStocksByName(Stock *head) {
+    if (head == NULL) return;
+    Stock *i, *j;
+    char tempName[20];
+    float tempPrice;
+    for (i = head; i->next != NULL; i = i->next) {
+        for (j = i->next; j != NULL; j = j->next) {
+            if (strcmp(i->name, j->name) > 0) {
+                strcpy(tempName, i->name);
+                strcpy(i->name, j->name);
+                strcpy(j->name, tempName);
+                tempPrice = i->price;
+                i->price = j->price;
+                j->price = tempPrice;
+            }
+        }
+    }
+    printf("Stocks sorted by name.\n");
+}
+
+// Find highest
+void findHighest(Stock *head) {
+    if (head == NULL) {
+        printf("No stock data available.\n");
+        return;
+    }
+    Stock *maxStock = head;
+    while (head != NULL) {
+        if (head->price > maxStock->price)
+            maxStock = head;
+        head = head->next;
+    }
+    printf("Highest Stock: %s at $%.2f\n", maxStock->name, maxStock->price);
+}
+
+// Find lowest
+void findLowest(Stock *head) {
+    if (head == NULL) {
+        printf("No stock data available.\n");
+        return;
+    }
+    Stock *minStock = head;
+    while (head != NULL) {
+        if (head->price < minStock->price)
+            minStock = head;
+        head = head->next;
+    }
+    printf("Lowest Stock: %s at $%.2f\n", minStock->name, minStock->price);
+}
+
+// Print all stocks
+void printStocks(Stock *head) {
+    printf("\nCurrent Stock Prices:\n");
+    while (head != NULL) {
+        printf("%s: $%.2f\n", head->name, head->price);
+        head = head->next;
+    }
+}
+
+// Free memory
+void freeStocks(Stock *head) {
+    Stock *temp;
+    while (head != NULL) {
+        temp = head;
+        head = head->next;
+        free(temp);
+    }
+}
+
+int main() {
+    Stock *stockList = NULL;
+    int choice;
+    char name[20];
+    float price;
+
+    while (1) {
+        printf("\n1. Add Stock\n2. Show All Stocks\n3. Update Stock\n4. Delete Stock\n5. Highest Price\n6. Lowest Price\n7. Search Stock\n8. Count Stocks\n9. Sort by Name\n10. Exit\nChoose: ");
+        scanf("%d", &choice);
+
+        switch (choice) {
+            case 1:
+                printf("Enter stock name: ");
+                scanf("%19s", name);
+                printf("Enter stock price: ");
+                scanf("%f", &price);
+                addStock(&stockList, name, price);
+                break;
+            case 2:
+                printStocks(stockList);
+                break;
+            case 3:
+                printf("Enter stock name to update: ");
+                scanf("%19s", name);
+                printf("Enter new price: ");
+                scanf("%f", &price);
+                updateStock(stockList, name, price);
+                break;
+            case 4:
+                printf("Enter stock name to delete: ");
+                scanf("%19s", name);
+                deleteStock(&stockList, name);
+                break;
+            case 5:
+                findHighest(stockList);
+                break;
+            case 6:
+                findLowest(stockList);
+                break;
+            case 7:
+                printf("Enter stock name to search: ");
+                scanf("%19s", name);
+                searchStock(stockList, name);
+                break;
+            case 8:
+                printf("Total number of stocks: %d\n", countStocks(stockList));
+                break;
+            case 9:
+                sortStocksByName(stockList);
+                break;
+            case 10:
+                freeStocks(stockList);
+                printf("Exiting...\n");
+                exit(0);
+            default:
+                printf("Invalid choice.\n");
+        }
+    }
+
+    return 0;
+}
